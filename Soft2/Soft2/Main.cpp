@@ -10,33 +10,6 @@ vector < string > GetUniqueScores(vector < string > Scores)
 	return Scores;
 }
 
-string GetFrequentScore(vector < string > Scores)
-{
-	vector < string > Unique_Scores = GetUniqueScores(Scores);
-	int Count[20] = { 0 };     
-	for (int i = 0; i < Scores.size(); i++)
-	{
-		for (int k = 0; k < Unique_Scores.size(); k++)
-		{
-			if (Scores[i].compare(Unique_Scores[k]) == 0)
-			{
-				Count[k] = Count[k] + 1;
-			}
-		}
-	}
-
-	int Max_Index = 0;
-	for (int k = 0; k < Unique_Scores.size(); k++)
-	{
-		if (Count[k] > Max_Index)
-		{
-			Max_Index = Count[k];
-		}
-	}
-
-	return Unique_Scores[Max_Index];
-}
-
 double BerechneEntropy(vector < string > Scores)
 {
 	vector < string > Score_Range = GetUniqueScores(Scores);
@@ -79,15 +52,11 @@ double BerechneEntropy(vector < string > Scores)
 	}
 }
 
-
-
-
 double BerechneAttributEntropy(MatrixCls Remain_Matrix, string The_Attribute)
 {
 	vector < string > Values = Remain_Matrix.GetAttributeValues(The_Attribute);
 	return BerechneEntropy(Values);
 }
-
 
 double BerechneAttributEntropyGain(MatrixCls Remain_Matrix, string The_Attribute)
 {
@@ -119,10 +88,7 @@ double GainRatio(MatrixCls Remain_Matrix, string The_Attribute)
 }
 
 
-
-
-
-Baum * Baum::BuildTree(Baum * tree, MatrixCls Remain_Matrix)
+Baum * Baum::BaumErzeugen(Baum * tree, MatrixCls Remain_Matrix)
 {
 	if (tree == NULL)
 	{
@@ -136,13 +102,7 @@ Baum * Baum::BuildTree(Baum * tree, MatrixCls Remain_Matrix)
 		return tree;
 	}
 
-	if (Remain_Matrix.SizeX() == 1)
-	{
-		string Frequent_Score = GetFrequentScore(Remain_Matrix.GetScores());
-		tree->msWurzel = Frequent_Score;
-		return tree;
-	}
-
+	
 	double Max_GainRatio = 0., Temp_GainRatio;
 	int j;
 	string Max_Attribute;
@@ -166,21 +126,16 @@ Baum * Baum::BuildTree(Baum * tree, MatrixCls Remain_Matrix)
 		New_Matrix = New_Matrix.operator()(Remain_Matrix, Max_Attribute, Values[k]);
 		Baum * Neuer_baum = new Baum();
 		Neuer_baum->msZweig = Values[k];
-		if (New_Matrix.SizeX() == 1)
-		{
-			Neuer_baum->msWurzel = GetFrequentScore(New_Matrix.GetScores());
-		}
-		else
-		{
-			BuildTree(Neuer_baum, New_Matrix); //Rekursive Aufruf
-		}
+		if (New_Matrix.SizeX() != 1)
+			BaumErzeugen(Neuer_baum, New_Matrix); //Rekursive Aufruf
+
 		tree->Kind.push_back(Neuer_baum);
 	}
 
 	return tree;
 }
 
-void Baum::PrintTree(Baum * tree, int Depth = -1)
+void Baum::ZeichneBaum(Baum * tree, int Depth = -1)
 {
 	for (int i = 0; i < Depth; i++) cout << "\t";
 	if (tree->msZweig.compare("") != 0)
@@ -195,7 +150,7 @@ void Baum::PrintTree(Baum * tree, int Depth = -1)
 	cout << tree->msWurzel << endl;
 	for (int i = 0; i < tree->Kind.size(); i++)
 	{
-		PrintTree(tree->Kind[i], Depth + 1);
+		ZeichneBaum(tree->Kind[i], Depth + 1);
 	}
 }
 
@@ -203,11 +158,12 @@ void Baum::PrintTree(Baum * tree, int Depth = -1)
 
 int main()
 {
-	MatrixCls Matrix("Train.csv");
-	Baum * root = new Baum();
-	root = root->BuildTree(root, Matrix);
-	root->PrintTree(root);
+	MatrixCls Matrix;
+	Matrix.CSVDateiLesen("Train.csv");
+	Baum * baum = new Baum();
+	baum = baum->BaumErzeugen(baum, Matrix);
+	baum->ZeichneBaum(baum);
 
 	cout << endl;
-	delete root;
+	delete baum;
 }

@@ -10,8 +10,8 @@ public:
 	string msZweig;
 	vector < Baum * > Kind;
 
-	Baum * BuildTree(Baum * baum, MatrixCls Remain_Matrix);
-	void PrintTree(Baum * tree, int Depth);
+	Baum * BaumErzeugen(Baum * baum, MatrixCls Remain_Matrix);
+	void ZeichneBaum(Baum * tree, int Depth);
 
 
 	Baum();

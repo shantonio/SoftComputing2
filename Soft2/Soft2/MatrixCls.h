@@ -16,7 +16,7 @@ class MatrixCls
 	private: vector < vector < string > > Matrix;
 	
 public:
-	MatrixCls(string Data_File);
+	void CSVDateiLesen(string Data_File);
 	MatrixCls(vector < vector < string > > A_Matrix);
 
 		

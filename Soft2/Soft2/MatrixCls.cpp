@@ -2,7 +2,7 @@
 
 
 
-MatrixCls::MatrixCls(string Data_File)
+void MatrixCls::CSVDateiLesen(string Data_File)
 {
 	Matrix.erase(Matrix.begin(), Matrix.end());
 	ifstream Data(Data_File);
