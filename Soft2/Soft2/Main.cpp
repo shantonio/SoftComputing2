@@ -7,7 +7,6 @@
 #include <algorithm>
 using namespace std;
 
-//STart
 class MatrixCls
 {
 private:
@@ -17,26 +16,34 @@ public:
 	{
 		Matrix.erase(Matrix.begin(), Matrix.end());
 		ifstream Data(Data_File);
-		string Line;
-		string Item;
+		string line;
+		string item;
 		vector < string > Row;
 		while (!Data.eof())
 		{
-			getline(Data, Line);
-			istringstream Iss(Line);
-			while (Iss.good())
+			getline(Data, line);
+			istringstream iss(line);
+			while (iss.good())
 			{
-				getline(Iss, Item, ',');
-				Row.push_back(Item);
+				getline(iss, item, ',');
+				Row.push_back(item);
 			}
 
-			if (Line.length())
+			if (line.length())
 			{
 				Matrix.push_back(Row);
 				Row.erase(Row.begin(), Row.end());
 			}
 		}
 		Data.close();
+	}
+
+	MatrixCls(vector < vector < string > > A_Matrix)
+	{
+		for (int i = 0; i < A_Matrix.size(); i++)
+		{
+			Matrix.push_back(A_Matrix[i]);
+		}
 	}
 
 	MatrixCls() { };
@@ -57,83 +64,70 @@ public:
 		return Matrix.size();
 	}
 
-	vector < string > GetVarKinds()
-	{
-		vector < string > Kinds;
-		int j;
-		for (j = 0; j < SizeX() - 1; j++)
-		{
-			Kinds.push_back(Matrix[0][j]);
-		}
-		return Kinds;
-	}
-
 	vector < string > GetAttributes()
 	{
-		vector < string > Attributes;
+		vector < string > Attribute;
 		int j;
-		for (j = 0; j < SizeX() - 1; j++)
+		for (j = 0; j < Matrix[0].size() - 1; j++)
 		{
-			Attributes.push_back(Matrix[1][j]);
+			Attribute.push_back(Matrix[0][j]);
 		}
-		return Attributes;
+		return Attribute;
 	}
 
-	vector < string > GetScores()
+	map < string, vector < string > > GetAttributesValues()
 	{
-		vector < string > Scores;
-		for (int i = 2; i < SizeY(); i++)
+		map < string, vector < string > > Attributes_Values;
+		vector < string > Attribute_Values;
+		int i, j;
+		for (j = 0; j < Matrix[0].size(); j++)
 		{
-			Scores.push_back(Matrix[i][SizeX() - 1]);
-		}
-		return Scores;
-	}
-
-	int GetAttributeIndex(string The_Attribute)
-	{
-		{
-			int Index = 0;
-			for (int j = 0; j < SizeX(); j++)
+			for (i = 1; i < Matrix.size(); i++)
 			{
-				if (Matrix[1][j].compare(The_Attribute) == 0)
-				{
-					Index = j;
-					break;
-				}
+				Attribute_Values.push_back(Matrix[i][j]);
 			}
-			return Index;
+			sort(Attribute_Values.begin(), Attribute_Values.end());
+			Attribute_Values.erase(unique(Attribute_Values.begin(), Attribute_Values.end()), Attribute_Values.end());
+			Attributes_Values[Matrix[0][j]] = Attribute_Values;
+			Attribute_Values.erase(Attribute_Values.begin(), Attribute_Values.end());
 		}
+		return Attributes_Values;
 	}
 
 	vector < string > GetAttributeValues(string The_Attribute)
 	{
-		vector < string > Values;
-		int Index = GetAttributeIndex(The_Attribute);
-		for (int i = 2; i < SizeY(); i++)
-		{
-			Values.push_back(Matrix[i][Index]);
-		}
-		return Values;
+		return GetAttributesValues()[The_Attribute];
 	}
 
-	vector < string > GetUniqueAttributeValues(string The_Attribute)
+	vector < string > GetScoreRange()
 	{
-		vector < string > Values = GetAttributeValues(The_Attribute);
-		sort(Values.begin(), Values.end());
-		Values.erase(unique(Values.begin(), Values.end()), Values.end());
-		return Values;
+		return GetAttributesValues()[Matrix[0][SizeX() - 1]];
+	}
+
+	int AttributeIndex(string The_Attribute)
+	{
+		int Index = 0;
+		for (int i = 0; i < SizeX(); i++)
+		{
+			if (Matrix[0][i].compare(The_Attribute) == 0)
+			{
+				Index = i;
+				break;
+			}
+		}
+		return Index;
 	}
 
 	map < string, vector < string > > GetAttributeValuesScores(string The_Attribute)
 	{
 		int i, k;
-		int Index = GetAttributeIndex(The_Attribute);
+		int Index = AttributeIndex(The_Attribute);
 		map < string, vector < string > > Attribute_Values_Scores;
-		vector < string > Attribute_Values = GetUniqueAttributeValues(The_Attribute);
+		vector < string > Attribute_Values = GetAttributesValues()[The_Attribute];
 		vector < string > Row;
 		for (k = 0; k < Attribute_Values.size(); k++)
 		{
-			for (i = 2; i < SizeY(); i++)
+			for (i = 1; i < SizeY(); i++)
 			{
 				if (Matrix[i][Index].compare(Attribute_Values[k]) == 0)
 				{
@@ -146,135 +140,55 @@ public:
 		return Attribute_Values_Scores;
 	}
 
-	vector < string > SortAttributeValues(string The_Attribute)
+	vector < string > GetScores()
 	{
-		vector < string > Values = GetAttributeValues(The_Attribute);
-		string Temp;
-		for (int i = 0; i < Values.size() - 1; i++)
+		vector < string > Scores;
+		for (int i = 1; i < Matrix.size(); i++)
 		{
-			for (int j = i + 1; j < Values.size(); j++)
-			{
-				if (stod(Values[i]) - stod(Values[j]) > 1.e-8)
-				{
-					Temp = Values[i];
-					Values[i] = Values[j];
-					Values[j] = Temp;
-				}
-			}
-		}
-		return Values;
-	}
-
-	vector < string > SortScoreValues(string The_Attribute)
-	{
-		vector < string > Values = GetAttributeValues(The_Attribute);
-		vector < string > Scores = GetScores();
-		string Temp;
-
-		for (int i = 0; i < Values.size() - 1; i++)
-		{
-			for (int j = i + 1; j < Values.size(); j++)
-			{
-				if (stod(Values[i]) - stod(Values[j]) > 1.e-8)
-				{
-					Temp = Values[i];
-					Values[i] = Values[j];
-					Values[j] = Temp;
-
-					Temp = Scores[i];
-					Scores[i] = Scores[j];
-					Scores[j] = Temp;
-				}
-			}
+			Scores.push_back(Matrix[i][Matrix[0].size() - 1]);
 		}
 		return Scores;
 	}
 
-	vector < string > GetBisectNodes(string The_Attribute)
-	{
-		vector < string > Bisect_Nodes;
-		vector < string > SortedValues = SortAttributeValues(The_Attribute);
-		vector < string > SortedScores = SortScoreValues(The_Attribute);
-		for (int i = 0; i < SortedValues.size() - 1; i++)
-		{
-			if (abs(stod(SortedValues[i]) - stod(SortedValues[i + 1])) > 1.e-8 & SortedScores[i].compare(SortedScores[i + 1]) != 0)
-			{
-				Bisect_Nodes.push_back(to_string((stod(SortedValues[i]) + stod(SortedValues[i + 1])) / 2.));
-			}
-		}
-		return Bisect_Nodes;
-	}
-
-	map < string, vector < string > > GetAttributeBisectParts(string The_Attribute, string Bisect_Node)
-	{
-		map < string, vector < string > > Bisect_Parts;
-		vector < string > SortedValues = SortAttributeValues(The_Attribute);
-		vector < string > SortedScores = SortScoreValues(The_Attribute);
-		vector < string > Row_1, Row_2, Row_3, Row_4;
-		for (int i = 0; i < SortedValues.size(); i++)
-		{
-			if (stod(SortedValues[i]) - stod(Bisect_Node) < -1.e-8)
-			{
-				Row_1.push_back(SortedScores[i]);
-				Row_3.push_back(SortedValues[i]);
-			}
-			else {
-				Row_2.push_back(SortedScores[i]);
-				Row_4.push_back(SortedValues[i]);
-			}
-		}
-		Bisect_Parts["Lower_Scores"] = Row_1;
-		Bisect_Parts["Upper_Scores"] = Row_2;
-		Bisect_Parts["Lower_Values"] = Row_3;
-		Bisect_Parts["Upper_Values"] = Row_4;
-		return Bisect_Parts;
-	}
-
-	MatrixCls operator()(MatrixCls A_Matrix, string The_Attribute, string The_Value, string Bisect_Node = "")
+	MatrixCls operator() (MatrixCls A_Matrix, string The_Attribute, string The_Value)
 	{
 		Matrix.erase(Matrix.begin(), Matrix.end());
-		int i, j;
-		int Index = A_Matrix.GetAttributeIndex(The_Attribute);
-		vector < string > Kinds = A_Matrix.GetVarKinds();
+		int i, j, Index = 0;
 		vector < string > Row;
-
-	
-			for (i = 0; i < 2; i++)
+		for (j = 0; j < A_Matrix.SizeX(); j++)
+		{
+			if (A_Matrix.Element(0, j).compare(The_Attribute) != 0)
 			{
-				for (j = 0; j < A_Matrix.SizeX(); j++)
+				Row.push_back(A_Matrix.Element(0, j));
+			}
+			else if (A_Matrix.Element(0, j).compare(The_Attribute) == 0)
+			{
+				Index = j;
+			}
+		}
+		if (Row.size() != 0)
+		{
+			Matrix.push_back(Row);
+			Row.erase(Row.begin(), Row.end());
+		}
+
+		for (i = 1; i < A_Matrix.SizeY(); i++)
+		{
+			for (j = 0; j < A_Matrix.SizeX(); j++)
+			{
+				if (A_Matrix.Element(0, j).compare(The_Attribute) != 0 & A_Matrix.Element(i, Index).compare(The_Value) == 0)
 				{
-					if (A_Matrix.Element(1, j).compare(The_Attribute) != 0)
-					{
-						Row.push_back(A_Matrix.Element(i, j));
-					}
-				}
-				if (Row.size() != 0)
-				{
-					Matrix.push_back(Row);
-					Row.erase(Row.begin(), Row.end());
+					Row.push_back(A_Matrix.Element(i, j));
 				}
 			}
-
-			for (i = 2; i < A_Matrix.SizeY(); i++)
+			if (Row.size() != 0)
 			{
-				for (j = 0; j < A_Matrix.SizeX(); j++)
-				{
-					if (A_Matrix.Element(1, j).compare(The_Attribute) != 0 & A_Matrix.Element(i, Index).compare(The_Value) == 0)
-					{
-						Row.push_back(A_Matrix.Element(i, j));
-					}
-				}
-
-				if (Row.size() != 0)
-				{
-					Matrix.push_back(Row);
-					Row.erase(Row.begin(), Row.end());
-				}
+				Matrix.push_back(Row);
+				Row.erase(Row.begin(), Row.end());
 			}
-			return *this;
-	
+		}
 
-
+		return *this;
 	}
 
 	void Display()
@@ -284,50 +198,50 @@ public:
 		{
 			for (j = 0; j < Matrix[0].size(); j++)
 			{
-				cout << Matrix[i][j] << "    \t";
+				cout << " " << Matrix[i][j];
 			}
 			cout << endl;
 		}
 	}
 };
 
-vector < string > UniqueValues(vector < string > A_String)
+vector < string > GetUniqueScores(vector < string > Scores)
 {
-	sort(A_String.begin(), A_String.end());
-	A_String.erase(unique(A_String.begin(), A_String.end()), A_String.end());
-	return A_String;
+	sort(Scores.begin(), Scores.end());
+	Scores.erase(unique(Scores.begin(), Scores.end()), Scores.end());
+	return Scores;
 }
 
-string FrequentValues(vector < string > A_String)
+string GetFrequentScore(vector < string > Scores)
 {
-	vector < string > Unique_Values = UniqueValues(A_String);
-	int Count[15] = { 0 };
-	for (int i = 0; i < A_String.size(); i++)
+	vector < string > Unique_Scores = GetUniqueScores(Scores);
+	int Count[20] = { 0 };
+	for (int i = 0; i < Scores.size(); i++)
 	{
-		for (int j = 0; j < Unique_Values.size(); j++)
+		for (int k = 0; k < Unique_Scores.size(); k++)
 		{
-			if (A_String[i].compare(Unique_Values[j]) == 0)
+			if (Scores[i].compare(Unique_Scores[k]) == 0)
 			{
-				Count[j] = Count[j] + 1;
+				Count[k] = Count[k] + 1;
 			}
 		}
 	}
 
-	int Max_Count = 0, Max_Index;
-	for (int i = 0; i < Unique_Values.size(); i++)
+	int Max_Index = 0;
+	for (int k = 0; k < Unique_Scores.size(); k++)
 	{
-		if (Count[i] > Max_Count)
+		if (Count[k] > Max_Index)
 		{
-			Max_Count = Count[i];
-			Max_Index = i;
+			Max_Index = Count[k];
 		}
 	}
-	return Unique_Values[Max_Index];
+
+	return Unique_Scores[Max_Index];
 }
 
-double ComputeScoreEntropy(vector < string > Scores)
+double ComputeEntropy(vector < string > Scores)
 {
-	vector < string > Score_Range = UniqueValues(Scores);
+	vector < string > Score_Range = GetUniqueScores(Scores);
 	if (Score_Range.size() == 0)
 	{
 		return 0.;
@@ -336,7 +250,7 @@ double ComputeScoreEntropy(vector < string > Scores)
 	{
 		double TheEntropy = 0.;
 		int i, j;
-		int Count[15] = { 0 };
+		int Count[20] = { 0 };
 
 		for (i = 0; i < Scores.size(); i++)
 		{
@@ -353,259 +267,228 @@ double ComputeScoreEntropy(vector < string > Scores)
 		double Temp_P;
 		for (j = 0; j < Score_Range.size(); j++)
 		{
-			Temp_P = (double)Count[j] / (double)(Scores.size());
-			Temp_Entropy = -Temp_P*log(Temp_P) / log(2.);
+			if (Count[j] == 0)
+			{
+				Temp_Entropy = 0.;
+			}
+			else {
+				Temp_P = (double)Count[j] / (double)(Scores.size());
+				Temp_Entropy = -Temp_P*log(Temp_P) / log(2.);
+			}
 			TheEntropy = TheEntropy + Temp_Entropy;
 		}
 		return TheEntropy;
 	}
 }
 
+
+
+
 double ComputeAttributeEntropy(MatrixCls Remain_Matrix, string The_Attribute)
 {
 	vector < string > Values = Remain_Matrix.GetAttributeValues(The_Attribute);
-	return ComputeScoreEntropy(Values);
+	return ComputeEntropy(Values);
 }
 
-double ComputeAttributeEntropyGain(MatrixCls Remain_Matrix, string The_Attribute, string Bisect_Node = "")
+
+double ComputeAttributeEntropyGain(MatrixCls Remain_Matrix, string The_Attribute)
 {
-	int Index = Remain_Matrix.GetAttributeIndex(The_Attribute);
-	vector < string > Kinds = Remain_Matrix.GetVarKinds();
 	double Original_Entropy = 0., Gained_Entropy = 0.;
 	vector < string > Scores = Remain_Matrix.GetScores();
-	Original_Entropy = ComputeScoreEntropy(Scores);
+	map < string, vector < string > > Values_Scores = Remain_Matrix.GetAttributeValuesScores(The_Attribute);
+	Original_Entropy = ComputeEntropy(Scores);
+	vector < string > Attribute_Values = Remain_Matrix.GetAttributeValues(The_Attribute);
 
-	
-		map < string, vector < string > > Values_Scores = Remain_Matrix.GetAttributeValuesScores(The_Attribute);
-		vector < string > Values = Remain_Matrix.GetUniqueAttributeValues(The_Attribute);
-
-		double After_Entropy = 0.;
-		double Temp_Entropy;
-		vector < string > Temp_Scores;
-		int i, j;
-		for (i = 0; i < Values.size(); i++)
-		{
-			Temp_Scores = Values_Scores[Values[i]];
-			Temp_Entropy = ComputeScoreEntropy(Temp_Scores)*(double)Temp_Scores.size() / (double)Scores.size();
-			After_Entropy = After_Entropy + Temp_Entropy;
-		}
-		Gained_Entropy = Original_Entropy - After_Entropy;
-		return Gained_Entropy;
-	
-
-	
+	double After_Entropy = 0.;
+	double Temp_Entropy;
+	vector < string > Temp_Scores;
+	int i, j;
+	for (i = 0; i < Attribute_Values.size(); i++)
+	{
+		Temp_Scores = Values_Scores[Attribute_Values[i]];
+		Temp_Entropy = ComputeEntropy(Temp_Scores)*(double)Temp_Scores.size() / (double)Scores.size();
+		After_Entropy = After_Entropy + Temp_Entropy;
+	}
+	Gained_Entropy = Original_Entropy - After_Entropy;
+	return Gained_Entropy;
 }
 
-double GainRatio(MatrixCls Remain_Matrix, string The_Attribute, string Bisect_Node = "")
+double GainRatio(MatrixCls Remain_Matrix, string The_Attribute)
 {
-	double Attribute_Entropy = ComputeAttributeEntropy(Remain_Matrix, The_Attribute);
-	double Attribute_Entropy_Gain = ComputeAttributeEntropyGain(Remain_Matrix, The_Attribute, Bisect_Node);
-	return Attribute_Entropy_Gain / Attribute_Entropy;
+	double Attribute_Entropy_SplitInfo = ComputeAttributeEntropy(Remain_Matrix, The_Attribute);
+	double Attribute_Entropy_Gain = ComputeAttributeEntropyGain(Remain_Matrix, The_Attribute);
+	return Attribute_Entropy_Gain / Attribute_Entropy_SplitInfo;
 }
 
-class TreeCls
+class Tree
 {
 public:
 	string Node;
 	string Branch;
-	vector < TreeCls * > Child;
-	TreeCls();
-	TreeCls * BuildTree(TreeCls * Tree, MatrixCls Remain_Matrix);
-	void Display(int Depth);
-	string Temp_TestTree(vector < string > Kinds, vector < string > Attributes, vector < string > Value, vector < string > Score_Range);
-	vector < string > TestTree(MatrixCls Data_Matrix);
+	vector < Tree * > Child;
+	Tree();
+	Tree * BuildTree(Tree * tree, MatrixCls Remain_Matrix);
+	void PrintTree(Tree * tree, int Depth);
+
+	string Temp_TestTree(Tree * tree, vector < string > Attributes, vector < string > Values, vector < string > Score_Range);
+	vector < string > TestTree(Tree * tree, MatrixCls The_Matrix);
 };
 
-string TreeCls::Temp_TestTree(vector < string > Kinds, vector < string > Attributes, vector < string > Value, vector < string > Score_Range)
+string Tree::Temp_TestTree(Tree * tree, vector < string > The_Attributes, vector < string > The_Values, vector < string > Score_Range)
 {
-	for (int i = 0; i < Score_Range.size(); i++)
+	vector < string > NA;
+	vector < string > NV;
+
+	int i, j, k, l;
+
+	for (i = 0; i < Score_Range.size(); i++)
 	{
-		if (this->Node.compare(Score_Range[i]) == 0)
+		if (tree->Node.compare(Score_Range[i]) == 0)
 		{
-			return this->Node;
+			return Score_Range[i];
 		}
 	}
 
-	for (int i = 0; i < Attributes.size(); i++)
+	for (i = 0; i < The_Attributes.size(); i++)
 	{
-		if (this->Node.compare(Attributes[i]) == 0)
+		if (tree->Node.compare(The_Attributes[i]) == 0)
 		{
-			
-				for (int j = 0; j < this->Child.size(); j++)
+			for (j = 0; j < tree->Child.size(); j++)
+			{
+				if ((tree->Child[j])->Branch.compare(The_Values[i]) == 0)
 				{
-					if ((this->Child[j])->Branch.compare(Value[i]) == 0)
+					for (k = 0; k < Score_Range.size(); k++)
 					{
-						for (int k = 0; k < Score_Range.size(); k++)
+						if ((tree->Child[j])->Node.compare(Score_Range[k]) == 0)
 						{
-							if ((this->Child[j])->Node.compare(Score_Range[k]) == 0)
-							{
-								return (this->Child[j])->Node;
-							}
+							return Score_Range[k];
 						}
-
-						vector < string > New_Kinds;
-						vector < string > New_Attributes;
-						vector < string > New_Value;
-						for (int l = 0; l < Attributes.size(); l++)
-						{
-							if (l != i)
-							{
-								New_Kinds.push_back(Kinds[l]);
-								New_Attributes.push_back(Attributes[l]);
-								New_Value.push_back(Value[l]);
-							}
-						}
-						return (this->Child[j])->Temp_TestTree(New_Kinds, New_Attributes, New_Value, Score_Range);
 					}
+
+					for (l = 0; l < The_Attributes.size(); l++)
+					{
+						if (l != i)
+						{
+							NA.push_back(The_Attributes[l]);
+							NV.push_back(The_Values[l]);
+						}
+					}
+					return Temp_TestTree(tree->Child[j], NA, NV, Score_Range);
 				}
-			
-
-	
+			}
 		}
 	}
 }
 
-vector < string > TreeCls::TestTree(MatrixCls Data_Matrix)
-{
-
-	int Lines_Number = Data_Matrix.SizeY() - 2;
-	vector < string > Test_Scores;
-	int i, j, k, l, m;
-	vector < string > Kinds = Data_Matrix.GetVarKinds();
-	vector < string > Attributes = Data_Matrix.GetAttributes();
-	vector < string > Attributes_Value;
-	vector < string > Score_Range = UniqueValues(Data_Matrix.GetScores());
-
-	for (i = 0; i < Lines_Number; i++)
-	{
-
-		for (j = 0; j < Data_Matrix.SizeX() - 1; j++)
-		{
-			Attributes_Value.push_back(Data_Matrix.Element((i + 2), j));
-		}
-
-		string Temp_Score;
-		Temp_Score = Temp_TestTree(Kinds, Attributes, Attributes_Value, Score_Range);
-		Test_Scores.push_back(Temp_Score);
-		Attributes_Value.erase(Attributes_Value.begin(), Attributes_Value.end());
-	}
-	return Test_Scores;
-}
-
-TreeCls::TreeCls()
+Tree::Tree()
 {
 	Node = "";
 	Branch = "";
 }
 
-TreeCls * TreeCls::BuildTree(TreeCls * Tree, MatrixCls Remain_Matrix)
+Tree * Tree::BuildTree(Tree * tree, MatrixCls Remain_Matrix)
 {
-	if (Tree == NULL)
+	if (tree == NULL)
 	{
-		Tree = new TreeCls();
+		tree = new Tree();
 	}
 
-	vector < string > Unique_Scores = UniqueValues(Remain_Matrix.GetScores());
+	vector < string > Unique_Scores = GetUniqueScores(Remain_Matrix.GetScores());
 	if (Unique_Scores.size() == 1)
 	{
-		Tree->Node = Unique_Scores[0];
-		return Tree;
+		tree->Node = Unique_Scores[0];
+		return tree;
 	}
 
-	//vector < string > Scores = Remain_Matrix.GetScores();
-	//if(Scores.size() <= 5)
-	//{
-	//  Tree->Node = FrequentValues(Scores);
-	//  return Tree;
-	//}
-
-	double Gain_Ratio = 0, Entropy_Gain = 0;
-	double Temp_Gain_Ratio, Temp_Entropy_Gain;
-	string Max_Attribute;
-	string Max_Bisect_Node = "";
-	int Max_Attribute_Index = 0;
-	//string Max_Bisect_Node_Index = 0;
-	vector < string > Attributes = Remain_Matrix.GetAttributes();
-	vector < string > Kinds = Remain_Matrix.GetVarKinds();
-	int i, j;
-	for (i = 0; i < Attributes.size(); i++)
+	if (Remain_Matrix.SizeX() == 1)
 	{
-	
-			Temp_Gain_Ratio = GainRatio(Remain_Matrix, Attributes[i]);
-	
+		string Frequent_Score = GetFrequentScore(Remain_Matrix.GetScores());
+		tree->Node = Frequent_Score;
+		return tree;
+	}
 
-
-		if (Temp_Gain_Ratio - Gain_Ratio > 1.e-8)
+	double Max_Gain = 0., Temp_Gain;
+	int j;
+	string Max_Attribute;
+	vector < string > Attributes = Remain_Matrix.GetAttributes();
+	for (j = 0; j < Attributes.size(); j++)
+	{
+		Temp_Gain = GainRatio(Remain_Matrix, Attributes[j]);
+		if ((Temp_Gain - Max_Gain) > 1.e-8)
 		{
-			Gain_Ratio = Temp_Gain_Ratio;
-			Max_Attribute = Attributes[i];
-			Max_Attribute_Index = i;
+			Max_Gain = Temp_Gain;
+			Max_Attribute = Attributes[j];
 		}
 	}
 
-	Tree->Node = Max_Attribute;
-	vector < string > Values, Branch_Values;
-		Values = Remain_Matrix.GetUniqueAttributeValues(Max_Attribute);
-		Branch_Values = Values;
-	
-
-
-	int k;
+	tree->Node = Max_Attribute;
+	vector < string > Values = Remain_Matrix.GetAttributeValues(Max_Attribute);
+	int i, k;
 	MatrixCls New_Matrix;
 	for (k = 0; k < Values.size(); k++)
 	{
-		New_Matrix = New_Matrix.operator()(Remain_Matrix, Max_Attribute, Values[k], Max_Bisect_Node);
-		TreeCls * New_Tree = new TreeCls();
-		New_Tree->Branch = Branch_Values[k];
-		vector < string > New_Unique_Scores = UniqueValues(New_Matrix.GetScores());
-		if (New_Unique_Scores.size() == 1)
+		New_Matrix = New_Matrix.operator()(Remain_Matrix, Max_Attribute, Values[k]);
+		Tree * New_tree = new Tree();
+		New_tree->Branch = Values[k];
+		if (New_Matrix.SizeX() == 1)
 		{
-			New_Tree->Node = New_Unique_Scores[0];
+			New_tree->Node = GetFrequentScore(New_Matrix.GetScores());
 		}
 		else
 		{
-			BuildTree(New_Tree, New_Matrix);
+			BuildTree(New_tree, New_Matrix);
 		}
-		Tree->Child.push_back(New_Tree);
+		tree->Child.push_back(New_tree);
 	}
-	return Tree;
+
+	return tree;
 }
 
-void TreeCls::Display(int Depth = 0)
+void Tree::PrintTree(Tree * tree, int Depth = -1)
 {
-	for (int i = 0; i < Depth; i++)
+	for (int i = 0; i < Depth; i++) cout << "\t";
+	if (tree->Branch.compare("") != 0)
+	{
+		cout << tree->Branch << endl;
+		for (int i = 0; i < Depth + 1; i++) cout << "\t";
+	}
+	if (Depth == -1 & tree->Branch.compare("") != 0)
 	{
 		cout << "\t";
 	}
-	if (this->Branch.compare("") != 0)
+	cout << tree->Node << endl;
+	for (int i = 0; i < tree->Child.size(); i++)
 	{
-		cout << this->Branch << endl;
-		for (int i = 0; i < Depth + 1; i++)
-		{
-			cout << "\t";
-		}
-	}
-	cout << this->Node << endl;
-	for (int i = 0; i < this->Child.size(); i++)
-	{
-		(this->Child[i])->Display(Depth + 1);
+		PrintTree(tree->Child[i], Depth + 1);
 	}
 }
 
-void DisplayVector(vector < string > The_Vector)
+vector < string > Tree::TestTree(Tree * tree, MatrixCls The_Matrix)
 {
-	for (int i = 0; i < The_Vector.size(); i++)
+	vector < string > Test_Scores;
+	vector < string > Attributes = The_Matrix.GetAttributes();
+	vector < string > Score_Range = The_Matrix.GetScoreRange();
+	vector < string > Values;
+	for (int i = 1; i < The_Matrix.SizeY(); i++)
 	{
-		cout << The_Vector[i] << "\n";
+		for (int j = 0; j < Attributes.size(); j++)
+		{
+			Values.push_back(The_Matrix.Element(i, j));
+		}
+		Test_Scores.push_back(Temp_TestTree(tree, Attributes, Values, Score_Range));
+		Values.erase(Values.begin(), Values.end());
 	}
-	cout << endl;
+
+	return Test_Scores;
 }
 
 int main()
 {
-	MatrixCls Matrix("Train.csv");
-	TreeCls * Tree = new TreeCls();
-	Tree = Tree->BuildTree(Tree, Matrix);
-	Tree->Display();
-	
+	MatrixCls Matrix("TrainGross.csv");
+	Tree * root = new Tree();
+	root = root->BuildTree(root, Matrix);
+	root->PrintTree(root);
+
+	cout << endl;
+	delete root;
 }
