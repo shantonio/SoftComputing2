@@ -24,6 +24,9 @@
     <ClCompile Include="MatrixCls.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Algorithmus.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TrainGross.csv">
@@ -38,6 +41,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="MatrixCls.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithmus.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

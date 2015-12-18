@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Algorithmus.cpp" />
     <ClCompile Include="Baum.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MatrixCls.cpp" />
@@ -155,6 +156,7 @@
     <None Include="TrainGross.csv" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algorithmus.h" />
     <ClInclude Include="Baum.h" />
     <ClInclude Include="MatrixCls.h" />
   </ItemGroup>
