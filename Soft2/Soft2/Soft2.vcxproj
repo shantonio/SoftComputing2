@@ -152,8 +152,8 @@
     <ClCompile Include="MatrixCls.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Breast_Cancer.csv" />
     <None Include="Train.csv" />
-    <None Include="TrainGross.csv" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithmus.h" />

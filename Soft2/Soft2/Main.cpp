@@ -47,6 +47,7 @@ Baum * Baum::BaumErzeugen(Baum * tree, MatrixCls Remain_Matrix)
 
 	return tree;
 }
+
 void Baum::ZeichneBaum(Baum * baum, int Tiefe = -1)
 {
 	for (int i = 0; i < Tiefe; i++) cout << "\t";
@@ -72,7 +73,7 @@ int main()
 {
 	MatrixCls Matrix;
 	Matrix.CSVDateiLesen("Train.csv");
-	//Matrix.CSVDateiLesen("TrainGross.csv");
+	//Matrix.CSVDateiLesen("Breast_Cancer.csv");// Lang Warten
 	Baum * baum = new Baum();
 	baum = baum->BaumErzeugen(baum, Matrix);
 	baum->ZeichneBaum(baum);
