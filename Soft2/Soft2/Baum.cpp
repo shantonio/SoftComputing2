@@ -2,10 +2,9 @@
 
 
 
-
 Baum::Baum()
 {
-	msWurzel = "";
-	msZweig = "";
+	msWurzel =	"";
+	msZweig =	"";
 }
 Baum::~Baum(){}
